@@ -2,6 +2,8 @@
     "type": "filament",
     "name": "DP200 PLA",
     "from": "User",
+    "version": "2.0.0.0",
+    "filament_settings_id": [""],
     "inherits": "",
     "instantiation": "true",
     "filament_type": ["PLA"],

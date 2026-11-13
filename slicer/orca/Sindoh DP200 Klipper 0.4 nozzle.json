@@ -2,6 +2,8 @@
     "type": "machine",
     "name": "Sindoh DP200 Klipper 0.4 nozzle",
     "from": "User",
+    "version": "2.0.0.0",
+    "printer_settings_id": "",
     "inherits": "",
     "instantiation": "true",
     "printer_technology": "FFF",
@@ -38,7 +40,7 @@
     "machine_max_acceleration_travel": ["1500", "1500"],
     "machine_start_gcode": "PRINT_START BED=[bed_temperature_initial_layer_single] EXTRUDER=[nozzle_temperature_initial_layer]\nPRIME_LINE\nG90\nM83\n",
     "machine_end_gcode": "PRINT_END\n",
-    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n{if layer_num==0}MESH_ADAPTIVE\n{endif}",
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n",
     "thumbnails": ["32x32/PNG", "300x300/PNG"]
 }

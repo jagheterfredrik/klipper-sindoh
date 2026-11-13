@@ -404,6 +404,21 @@ def read_kv(path):
     except OSError:
         return {}
 
+# Header name. The stock firmware tag tells the models apart: RODIN_ on the
+# DP200/DP201, RODUP_ on the 3DWOX 1 (docs/other_models.md, 3DWOX1.md).
+# Without stock_info (mainline boot) it stays the DP200 name.
+MODEL_BY_FW = (('RODUP_', 'Sindoh 3DWOX 1'), ('RODIN_', 'Sindoh DP200'))
+_model_name = None
+
+def model_name():
+    global _model_name
+    if _model_name is None:
+        fw = read_kv(STOCK_INFO).get('firmware', '')
+        if not fw:
+            return 'Sindoh DP200'          # not written yet: look again next time
+        _model_name = next((n for p, n in MODEL_BY_FW if fw.startswith(p)), 'Sindoh DP200')
+    return _model_name
+
 def system_info(ip):
     """(label, value) rows for SYSTEM -> INFO. Files and two local requests
     only; anything missing shows as '-'."""
@@ -1631,7 +1646,7 @@ class UI:
                 self.header(d, st)
             else:
                 d.rectangle((0, 0, PW, 64), fill=C_BAR)
-                d.text((20, 14), 'Sindoh DP200', font=font(30), fill=C_TXT)
+                d.text((20, 14), model_name(), font=font(30), fill=C_TXT)
             getattr(self, 'page_' + self.screen)(d, st)
             if self.confirm:
                 self.overlay_confirm(d)
@@ -1695,7 +1710,7 @@ class UI:
 
     def header(self, d, st):
         d.rectangle((0, 0, PW, 64), fill=C_BAR)
-        d.text((20, 14), 'Sindoh DP200', font=font(30), fill=C_TXT)
+        d.text((20, 14), model_name(), font=font(30), fill=C_TXT)
         state = st['webhooks']['state']
         col = (80, 200, 120) if state == 'ready' else (230, 80, 70)
         txt = state.upper()

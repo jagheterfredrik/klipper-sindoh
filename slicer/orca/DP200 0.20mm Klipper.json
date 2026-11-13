@@ -2,6 +2,8 @@
     "type": "process",
     "name": "DP200 0.20mm Klipper",
     "from": "User",
+    "version": "2.0.0.0",
+    "print_settings_id": "",
     "inherits": "",
     "instantiation": "true",
     "layer_height": "0.2",

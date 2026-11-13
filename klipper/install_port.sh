@@ -3,12 +3,12 @@
 #
 #   klipper/install_port.sh KLIPPER_DIR
 #
-# - applies patches/*.patch: the few changes to upstream core files
-#   (src/Kconfig, src/stepper.c, src/sched.c); a patch that is already
-#   applied is skipped, one that no longer applies stops the install
+# - applies patches/*.patch (today only: register MACH_UPC in src/Kconfig);
+#   a patch that is already applied is skipped, one that no longer applies
+#   stops the install
 # - copies src/upc, the two MCU build configs and the klippy extras in
-# - lists the copied files in .git/info/exclude (the patched core files
-#   still show as modified in `git status`; that is expected)
+# - lists the copied files in .git/info/exclude (the patched src/Kconfig
+#   still shows as modified in `git status`; that is expected)
 #
 # Safe to run again. Printer config is not installed here (see config/).
 set -e

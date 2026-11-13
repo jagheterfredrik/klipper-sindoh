@@ -41,8 +41,27 @@ run)
     i=0
     while [ ! -f /tmp/dmesg.boot.txt ] && [ $i -lt 120 ]; do sleep 1; i=$((i + 1)); done
     sleep 2
+    # The stock app joins Wi-Fi: it cycles the radio (radio_off/on, mlan0
+    # down/up, may restart wpa_supplicant), then runs udhcpc. dp200-start.sh
+    # kills the app, and on a boot with the stick in that came ~5 s after
+    # the app started: the radio was left mid-setup, scans found no access
+    # points and Wi-Fi stayed down (3DWOX 1, 2026-11-13). So let the app
+    # finish first: wait until mlan0 has an address (its udhcpc keeps the
+    # lease after the app is gone). Ethernet with an address shortens the
+    # wait; no Wi-Fi network at all ends it after 60 s.
+    w=0
+    while [ $w -lt 60 ]; do
+        ifconfig mlan0 2>/dev/null | grep -q 'inet addr:' && break
+        [ $w -ge 20 ] && ifconfig eth0 2>/dev/null | grep -q 'inet addr:' && break
+        sleep 1; w=$((w + 1))
+    done
+    if ifconfig mlan0 2>/dev/null | grep -q 'inet addr:'; then
+        say "Wi-Fi up after ${w}s: $(ifconfig mlan0 | sed -n 's/.*inet addr:\([0-9.]*\).*/\1/p')"
+    else
+        say "no Wi-Fi address after ${w}s (Ethernet: $(ifconfig eth0 2>/dev/null | sed -n 's/.*inet addr:\([0-9.]*\).*/\1/p'))"
+    fi
     [ -x $ROOT/dp200/dp200-start.sh ] || { say "no $ROOT/dp200/dp200-start.sh"; exit 1; }
-    say "starting Klipper (waited ${i}s)"
+    say "starting Klipper (waited ${i}s for the stock boot)"
     exec sh $ROOT/dp200/dp200-start.sh
     ;;
 *)

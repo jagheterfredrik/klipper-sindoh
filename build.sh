@@ -7,6 +7,9 @@
 #
 # KLIPPER_REF=<sha|master> builds against another upstream commit than
 # klipper/klipper.lock (the weekly CI check uses master).
+# KEEP_STATE=<old dp200.img> (image only) carries that printer's own files
+# into the new image: printer.cfg and the rest of the owner's config folder,
+# Moonraker's database, G-codes, saved Wi-Fi networks.
 #
 # The first image build is long (debootstrap and Python wheels under qemu);
 # the work is cached in the Docker volume klipper-sindoh-build, so later
@@ -27,7 +30,13 @@ esac
 VERSION=$(git -C "$HERE" describe --always --tags --dirty 2>/dev/null || echo unknown)
 mkdir -p "$OUT"
 docker build -q -t $IMG "$HERE/image" >/dev/null
+STATE=()
+if [ -n "${KEEP_STATE:-}" ]; then
+    [ -f "$KEEP_STATE" ] || { echo "KEEP_STATE: no file $KEEP_STATE" >&2; exit 1; }
+    STATE=(-v "$(cd "$(dirname "$KEEP_STATE")" && pwd)":/state:ro
+           -e STATE_IMG="/state/$(basename "$KEEP_STATE")")
+fi
 docker run --rm --privileged -e PORT_VERSION="$VERSION" -e KLIPPER_REF="${KLIPPER_REF:-}" \
-    -v "$HERE":/src:ro -v "$OUT":/out -v $VOL:/build \
+    ${STATE[@]+"${STATE[@]}"} -v "$HERE":/src:ro -v "$OUT":/out -v $VOL:/build \
     $IMG bash /src/image/build_in_container.sh "$MODE"
 echo "done ($VERSION): $OUT/$([ "$MODE" = image ] && echo stick || echo firmware)"

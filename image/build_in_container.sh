@@ -204,6 +204,32 @@ if grep -rIl -e 'psk=' $RTREE/etc $RTREE/home/klipper/printer_data 2>/dev/null |
     echo "a Wi-Fi passphrase is in the image" >&2; exit 1
 fi
 
+# The printer's own files from a stick's previous dp200.img (KEEP_STATE in
+# build.sh): printer.cfg and everything else the owner added to the config
+# folder, Moonraker's database (history, Mainsail settings), uploaded
+# G-codes, saved Wi-Fi networks and network settings. Files this build
+# ships (shared config, rc.dp200, versions) are never replaced by old ones.
+if [ -n "${STATE_IMG:-}" ]; then
+    say "9b. the printer's own files from $(basename "$STATE_IMG")"
+    ST=$B/state; rm -rf $ST $B/state.img; mkdir -p $ST
+    cp "$STATE_IMG" $B/state.img
+    e2fsck -fy $B/state.img >/dev/null || [ $? -le 1 ]   # replays the journal of a pulled stick
+    P=home/klipper/printer_data
+    for d in $P etc/dp200 var/lib/dp200; do
+        mkdir -p $ST/$(dirname $d)
+        debugfs -R "rdump /$d $ST/$(dirname $d)" $B/state.img 2>/dev/null || true
+    done
+    [ -f $ST/$P/config/printer.cfg ] || { echo "no printer.cfg in $STATE_IMG" >&2; exit 1; }
+    cp -an $ST/$P/config/. $RTREE/$P/config/                  # owner's files; shipped ones win
+    for f in database gcodes .moonraker.uuid moonraker.asvc; do
+        [ -e $ST/$P/$f ] && { rm -rf $RTREE/$P/$f; cp -a $ST/$P/$f $RTREE/$P/; }
+    done
+    cp -an $ST/etc/dp200/. $RTREE/etc/dp200/                  # wpa_supplicant.conf, network.json, ...
+    [ -d $ST/var/lib/dp200 ] && cp -a $ST/var/lib/dp200 $RTREE/var/lib/
+    echo "kept: $(cd $RTREE/$P/config && ls | tr '\n' ' ')"
+    rm -rf $ST $B/state.img
+fi
+
 say "10. ext3 image (kernel 3.2 mounts ext3; the journal replays after a pulled stick)"
 USED=$(du -sm $RTREE | cut -f1)
 SIZE=$(( USED * 125 / 100 + 128 ))

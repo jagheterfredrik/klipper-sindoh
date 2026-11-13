@@ -49,9 +49,18 @@ Wi-Fi networks saved in the stock firmware; Ethernet uses DHCP. The log is
 
 On the first start `printer.cfg` is created for your model. Calibrate it
 (Z endstop / probe offset with `LV_PROBE_CALIBRATE`, `PID_CALIBRATE` for both
-heaters) and `SAVE_CONFIG`. **Your `printer.cfg` lives inside `dp200.img`:**
-download it from Mainsail before you copy a new `dp200.img` to the stick, and
-upload it again afterwards.
+heaters) and `SAVE_CONFIG`.
+
+**Updating a stick:** your `printer.cfg`, print history and saved networks live
+inside `dp200.img`. Build the new image with the old one as input and they
+are carried over (the shared config, scripts and firmware are the new ones):
+
+```sh
+cp /Volumes/<stick>/dp200/dp200.img old-dp200.img
+KEEP_STATE=old-dp200.img ./build.sh image
+```
+
+Then copy `out/stick/` over the stick as before.
 
 ## Remove
 

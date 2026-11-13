@@ -1,77 +1,68 @@
-# Slicer profiles for the DP200 with Klipper
+# OrcaSlicer profiles
 
-All profiles describe the same machine:
+Tested with [OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) only. The
+profiles are named "DP200", but the 3DWOX 1 is the same machine: use them for
+both.
 
-- **Bed:** 210 × 201 mm, origin at the front-left (Klipper X 0 / Y 0, about
+## Import
+
+**File → Import → Import Configs…** and select the three files in `orca/`:
+
+| File | Orca type |
+|---|---|
+| `Sindoh DP200 Klipper 0.4 nozzle.json` | printer |
+| `DP200 0.20mm Klipper.json` | process (0.20 mm layers) |
+| `DP200 PLA.json` | filament |
+
+If Orca asks, import the printer first: the process and the filament are tied
+to "Sindoh DP200 Klipper 0.4 nozzle".
+
+## What the profiles set
+
+- **Bed:** 210 × 201 mm, origin at the front left (Klipper X 0 / Y 0, about
   2 mm in from the plate's front and left edges). Y can't reach the last
-  ~4 mm at the back of the 216 × 209 mm plate.
-- **Back-corner cut-outs:** the plate has 4 × 11 mm notches at both back
-  corners (the old levelling touch points). They're left out of the bed as
-  4 × 8 mm areas at X 0–4 and 206–210, Y 193–201.
+  ~4 mm at the back of the 216 × 209 mm plate. The plate's 4 × 11 mm notches
+  at both back corners are left out of the printable area (X 0–4 and 206–210,
+  Y 193–201). Measured 2026-10-27, to about ±1 mm.
 - **Height:** 190 mm.
-- **Start G-code:** `PRINT_START BED=… EXTRUDER=…` then `PRIME_LINE`.
-  PRINT_START heats, homes, meshes, purges and wipes; the slicer must not
-  send its own heating commands.
+- **Start G-code:** `PRINT_START BED=… EXTRUDER=…`, then `PRIME_LINE`.
+  `PRINT_START` heats, homes, purges and wipes over the bin; the slicer sends
+  no heating commands of its own. `PRIME_LINE` draws a line at the very front
+  edge of the plate (Y 0).
+- **Bed mesh:** `PRINT_START` makes no mesh. Before the first layer the
+  profile calls `MESH_ADAPTIVE`, which probes only the area the objects cover.
+  It needs the object outlines, which Orca writes after the start G-code, so
+  exclude-object labels stay on. The 3DWOX 1 `printer.cfg` also loads the
+  saved `default` mesh at start-up, for prints without `MESH_ADAPTIVE`.
+- **Cancel one object:** exclude-object labels let you cancel a single object
+  in Mainsail or on the touch screen (OBJECTS on the print page).
 - **End G-code:** `PRINT_END`.
 - **Extrusion:** relative (M83), 4 mm retraction at 35 mm/s on the long
-  bowden, 0.2 mm z-hop on every retraction (without it the nozzle scuffed
-  finished top surfaces on the XYZ cube). Retraction is a first guess;
-  pressure advance (0.30, from the tower) is in dp200_printer.cfg.
+  Bowden tube, 0.2 mm z-hop on every retraction (without it the nozzle scuffed
+  finished top surfaces). Retraction is a first guess. Pressure advance (0.30)
+  is set in `dp200_printer.cfg`, not in the slicer.
+- **Thumbnails:** 32×32 and 300×300 PNG, shown in Mainsail.
+- **PLA:** 210 °C first layer, then 205 °C; bed 60 °C.
 
 ## Pressure-advance tower
 
 `make_pa_tower.py` writes a ready-to-print tower (no slicer needed) for
-Klipper's TUNING_TOWER method: `python make_pa_tower.py` →
-`dp200_pa_tower.gcode`, upload and print. Pressure advance rises 0.020 per
-mm of height (0 at the bed, 1.0 at the top of the 50 mm tower). Find the
-height where the corners are sharpest with no bulge before them and no gap
-after them, ignoring the front-left corner (layer-change seam), then put
+Klipper's `TUNING_TOWER` method:
+
+```sh
+python3 make_pa_tower.py        # -> dp200_pa_tower.gcode
+```
+
+Upload and print it. Pressure advance rises 0.020 per mm of height (0 at the
+bed, 1.0 at the top of the 50 mm tower). Find the height where the corners are
+sharpest, with no bulge before them and no gap after them (ignore the front
+left corner: that's the layer-change seam). Then put
 `pressure_advance: <0.020 × height>` in the `[extruder]` section of
-printer.cfg.
-- **Starting point:** a 0.20 mm PLA process (210 °C first layer, 205 °C,
-  bed 60 °C).
-
-Bed size and cut-outs are from a measurement on 2026-10-27, accurate to
-about ±1 mm.
-
-## PrusaSlicer and SuperSlicer
-
-`DP200_Klipper_PrusaSlicer.ini`: **File → Import → Import Config Bundle**.
-It adds the printer "Sindoh DP200 Klipper", the print profile "DP200 0.20mm
-Klipper" and the filament "DP200 PLA". The cut-outs are part of the bed
-shape. Objects are labelled for Klipper's exclude-object (cancel one
-object in Mainsail, or on the touch screen: OBJECTS on the print page).
-
-## OrcaSlicer
-
-The three files in `orca/`: **File → Import → Import Configs…** and select
-all three. Import the printer first if Orca asks; the process and filament
-are tied to "Sindoh DP200 Klipper 0.4 nozzle". The cut-outs are part of the
-printable area, and exclude-object labels are on.
-
-## Cura
-
-Cura has no import for printers; copy the definition files into Cura's
-configuration folder (Help → Show Configuration Folder), then restart
-Cura:
-
-- `cura/definitions/sindoh_dp200_klipper.def.json` → `definitions/`
-- `cura/extruders/sindoh_dp200_klipper_extruder_0.def.json` → `extruders/`
-
-Then **Preferences → Printers → Add → Non-networked → Sindoh → Sindoh DP200
-(Klipper)** and choose Generic PLA. The cut-outs are disallowed areas (grey
-on the build plate) at the back corners: Cura puts the origin of these
-points at the plate centre with negative Y at the back (its BuildVolume.py
-maps a point straight to scene Z, whose larger values are the front), so
-Y -100.5..-92.5 is the 8 mm strip at the back, as in the PrusaSlicer bed
-shape (Y 193-201). Cura doesn't label objects for
-exclude-object.
+`printer.cfg`.
 
 ## Other slicers
 
-- **SuperSlicer:** use the PrusaSlicer bundle (same format).
-- **Bambu Studio:** imports OrcaSlicer's JSON, but it is made for Bambu
-  printers. Prefer OrcaSlicer.
-- **Simplify3D, IdeaMaker and others:** set the values above by hand.
-  Use the start and end G-code as given, and turn off the slicer's own
-  temperature commands at the start.
+Not tested. Set the values above by hand: use the start and end G-code as
+given, turn off the slicer's own start-of-print temperature commands, and call
+`MESH_ADAPTIVE` before the first layer (or start with `PRINT_START … MESH=4`
+for a full 4×4 mesh).

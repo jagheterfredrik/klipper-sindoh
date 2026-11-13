@@ -44,8 +44,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../common/upc_hw.h"
-#include "../common/upc_ipc.h"
+#include "upc_hw.h"
+#include "upc_ipc.h"
 
 // upc.ko ioctls (decoded from upc_ioctl in upc.ko)
 #define UPC_IOC_RUN          0xc0017521u  // CPUSoftReset = 1 (both cores run)

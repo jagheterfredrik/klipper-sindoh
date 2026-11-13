@@ -394,6 +394,7 @@ def post(path, body=None):
 STOCK_INFO = '/run/dp200/stock_info'          # written at boot by dp200-start.sh (stock side)
 BUILD_FILE = '/etc/dp200/build'                # written by make_payload.sh
 ON_NAND = '/etc/dp200/on_nand'                 # written by the USB installer
+ON_USB = '/etc/dp200/usb_live'                 # written by the USB-stick image build
 RECOVERY_INFO = '/etc/dp200/recovery_info'     # the installer reads it from mtd5 once
 
 def read_kv(path):
@@ -438,7 +439,8 @@ def system_info(ip):
         uptime = '-'
     return [
         ('Build', first(BUILD_FILE, 'not stamped (SD build)')),
-        ('Installed on', 'internal NAND' if os.path.exists(ON_NAND) else 'microSD card'),
+        ('Installed on', 'USB stick' if os.path.exists(ON_USB) else
+                         'internal NAND' if os.path.exists(ON_NAND) else 'microSD card'),
         ('Klipper', req('/printer/info', 'software_version')),
         ('Moonraker', req('/server/info', 'moonraker_version')),
         ('Mainsail', mainsail),

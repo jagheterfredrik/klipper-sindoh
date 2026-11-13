@@ -16,8 +16,12 @@ ARCHFLAGS ?= -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard
 CFLAGS ?= -O2 -Wall -Wextra -Wno-unused-parameter -std=gnu99 $(ARCHFLAGS)
 LDFLAGS ?= -static
 
-upctool: upctool.c ../common/upc_hw.h ../common/upc_ipc.h
-	$(CC) $(CFLAGS) -o $@ upctool.c $(LDFLAGS)
+# The shared-memory layout is shared with the MCU firmware: one copy of the
+# headers, in the port (klipper/src/upc).
+UPC_INC ?= ../klipper/src/upc
+
+upctool: upctool.c $(UPC_INC)/upc_hw.h $(UPC_INC)/upc_ipc.h
+	$(CC) $(CFLAGS) -I$(UPC_INC) -o $@ upctool.c $(LDFLAGS)
 
 clean:
 	rm -f upctool

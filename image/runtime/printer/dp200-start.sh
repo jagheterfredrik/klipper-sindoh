@@ -124,6 +124,20 @@ mkdir -p $ROOT/run/dp200
     echo "serial=`sqlite3 /app/nvram/karas.db 'select MachineSerialNo from INST_MACHINE' 2>/dev/null`"
     echo "kernel=`uname -r`"
 } > $ROOT/run/dp200/stock_info
+# printer.cfg for this model, on the first start only: it is the owner's file
+# (calibration, SAVE_CONFIG). The image ships one template per model in
+# /opt/dp200/config/<model>/; the shared hardware and macro files are already
+# in printer_data/config. RODUP_ firmware = 3DWOX 1, anything else = DP200.
+case "`sed -n 's/.*\(ROD[IU][NP]\)_.*/\1/p' /snapshot_version.sh 2>/dev/null | head -1`" in
+    RODUP) MODEL=3dwox1 ;;
+    *)     MODEL=dp200 ;;
+esac
+CFG=$ROOT/home/klipper/printer_data/config
+if [ ! -f $CFG/printer.cfg ] && [ -f $ROOT/opt/dp200/config/$MODEL/printer.cfg ]; then
+    cp $ROOT/opt/dp200/config/$MODEL/printer.cfg $CFG/printer.cfg
+    chown $(grep '^klipper:' $ROOT/etc/passwd | cut -d: -f3,4) $CFG/printer.cfg
+    echo "printer.cfg created for $MODEL"
+fi
 if ! { [ -f /var/run/dp200-netd.pid ] && kill -0 $(cat /var/run/dp200-netd.pid) 2>/dev/null; }; then
     sh $ROOT/dp200/dp200-netd.sh $ROOT </dev/null >> $ROOT/var/log/dp200-netd.log 2>&1 &
     echo $! > /var/run/dp200-netd.pid

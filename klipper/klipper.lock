@@ -1,0 +1,5 @@
+# Upstream Klipper this port is built and tested against (sourced by shell
+# scripts). The weekly CI job builds against upstream master and opens a PR
+# that bumps KLIPPER_SHA when the patches still apply and the firmware passes.
+KLIPPER_REPO=https://github.com/Klipper3d/klipper
+KLIPPER_SHA=29d4ec2d6d840ee839333306003a400da186d41d

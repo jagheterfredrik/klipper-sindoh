@@ -1,0 +1,7 @@
+# Pinned components of the USB-stick image (sourced by image/build_in_container.sh).
+# Klipper itself is pinned in klipper/klipper.lock.
+MOONRAKER_REPO=https://github.com/Arksine/moonraker
+MOONRAKER_SHA=b559b9a81161f958a43c2f527b6ad96f73310d5d
+MAINSAIL_VERSION=v2.19.0
+DEBIAN_SUITE=trixie
+DEBIAN_MIRROR=http://deb.debian.org/debian

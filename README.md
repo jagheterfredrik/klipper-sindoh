@@ -127,3 +127,19 @@ conflict, and `git diff` the file back into `klipper/patches/`.
 
 The research behind the port (reverse engineering, hardware notes, kernel
 work, tools) is in the separate research repository.
+
+## Credits
+
+The Klipper port is the work of [catawalks](https://github.com/catawalks):
+the reverse engineering of the Sindoh firmware and hardware, the UPC MCU
+port, `upctool`, the klippy extras, the printer configuration, the touch
+screen app and the runtime scripts all come from
+[catawalks/sindoh](https://github.com/catawalks/sindoh) and the
+[catawalks/klipper](https://github.com/catawalks/klipper) fork (branch
+`sindoh-dp200`). This repository packages that work as a Klipper add-on and a
+USB-stick image, and adds the 3DWOX 1 support. See the research repository for
+the full history.
+
+Built on [Klipper](https://github.com/Klipper3d/klipper),
+[Moonraker](https://github.com/Arksine/moonraker) and
+[Mainsail](https://github.com/mainsail-crew/mainsail).

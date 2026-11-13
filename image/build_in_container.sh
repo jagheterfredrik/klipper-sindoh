@@ -25,7 +25,7 @@ say() { echo "== $*"; }
 # host and MCU code always match.
 say "firmware"
 rm -rf /out/firmware
-sh $SRC/klipper/build_firmware.sh $B/fw-klipper /out/firmware
+sh $SRC/klipper/build_firmware.sh $B/fw-klipper /out/firmware ${KLIPPER_REF:-}
 [ "$MODE" = firmware ] && exit 0
 
 # ---------------------------------------------------------------- root fs
@@ -227,10 +227,14 @@ STUB=unmistakable_klipper_usb
 #   3DWOX 1  _update_rodin_up  AES-256-CBC, key = IV = "sindoh024601779U"
 #   DP200    _update_rodin     des3 (salted, MD5 key derivation), "sindoh024601779"
 pack_aes() {
-    local k; k=$(printf '%s' "$2" | od -An -v -tx1 | tr -d ' \n')
+    # key: the string zero-padded to 32 bytes; IV: its first 16 bytes
+    local k iv
+    k=$(printf '%s' "$2" | od -An -v -tx1 | tr -d ' \n')
+    iv=$(printf '%-32.32s' "$k" | tr ' ' 0)
+    k=$(printf '%-64.64s' "$k" | tr ' ' 0)
     mkdir -p /out/stick/$1
-    tar -cjf - -C $STUBDIR $STUB.sh | openssl enc -aes-256-cbc -K $k -iv $k > /out/stick/$1/$STUB.she
-    openssl enc -d -aes-256-cbc -K $k -iv $k -in /out/stick/$1/$STUB.she \
+    tar -cjf - -C $STUBDIR $STUB.sh | openssl enc -aes-256-cbc -K $k -iv $iv > /out/stick/$1/$STUB.she
+    openssl enc -d -aes-256-cbc -K $k -iv $iv -in /out/stick/$1/$STUB.she \
         | tar -xjO $STUB.sh | cmp - $STUBDIR/$STUB.sh
 }
 pack_des3() {

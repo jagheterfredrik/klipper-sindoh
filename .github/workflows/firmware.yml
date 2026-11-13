@@ -1,0 +1,59 @@
+# Firmware build + emulator test on every push, and a weekly check against
+# upstream Klipper master that proposes a klipper.lock bump (or opens an issue).
+name: firmware
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+jobs:
+  pinned:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: ./build.sh firmware
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: out/firmware/
+
+  upstream:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: upstream
+        run: |
+          . klipper/klipper.lock
+          echo "sha=$(git ls-remote "$KLIPPER_REPO" refs/heads/master | cut -f1)" >> "$GITHUB_OUTPUT"
+          echo "current=$KLIPPER_SHA" >> "$GITHUB_OUTPUT"
+      - id: build
+        if: steps.upstream.outputs.sha != steps.upstream.outputs.current
+        continue-on-error: true
+        run: KLIPPER_REF=${{ steps.upstream.outputs.sha }} ./build.sh firmware 2>&1 | tee build.log
+      - if: steps.build.outcome == 'success'
+        run: sed -i "s/^KLIPPER_SHA=.*/KLIPPER_SHA=${{ steps.upstream.outputs.sha }}/" klipper/klipper.lock
+      - if: steps.build.outcome == 'success'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: upstream-klipper
+          title: Bump Klipper to ${{ steps.upstream.outputs.sha }}
+          commit-message: Bump Klipper to upstream ${{ steps.upstream.outputs.sha }}
+          body: The port's patches apply to upstream master and both images pass the emulator test. Test on a printer before tagging a release.
+      - if: steps.build.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Upstream Klipper ${{ steps.upstream.outputs.sha }} breaks the port"
+          gh issue list --state open --search "in:title Upstream Klipper" --json number -q '.[].number' | grep -q . && exit 0
+          { echo "Building against upstream master failed (patches, compile or emulator test)."; echo; echo '```'; tail -60 build.log; echo '```'; } > body.md
+          gh issue create --title "$title" --body-file body.md

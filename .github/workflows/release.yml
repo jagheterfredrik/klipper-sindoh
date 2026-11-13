@@ -1,0 +1,29 @@
+# Tag vX.Y.Z -> build the stick under qemu and attach it to a GitHub release.
+name: release
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  stick:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: docker/setup-qemu-action@v3
+        with: { platforms: arm }
+      - run: ./build.sh image
+      - run: |
+          V=${GITHUB_REF_NAME}
+          (cd out/stick && zip -qr ../klipper-sindoh-stick-$V.zip .)
+          (cd out && tar -czf klipper-sindoh-firmware-$V.tar.gz firmware)
+          (cd out && sha256sum klipper-sindoh-*-$V.* > SHA256SUMS)
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=${GITHUB_REF_NAME}
+          gh release create "$V" --title "$V" --notes-file out/stick/dp200/versions.txt \
+            out/klipper-sindoh-stick-$V.zip out/klipper-sindoh-firmware-$V.tar.gz out/SHA256SUMS

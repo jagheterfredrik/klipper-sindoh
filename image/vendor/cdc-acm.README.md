@@ -1,3 +1,7 @@
+> Copied from the research repo (`klipper_port/install/kernel_modules/`), where
+> `build_cdc_acm.sh` and the `verify/` checks referred to below live. The
+> stick ships the built module only; `dp200-start.sh` loads it.
+
 # Kernel modules for the DP200's vendor kernel (3.2.0-g67a8e16)
 
 Built 2026-10-28 without Marvell's SDK. Not loaded on the printer yet:

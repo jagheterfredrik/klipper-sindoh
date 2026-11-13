@@ -66,7 +66,7 @@ not belong in the per-model config.
 |---|---|---|---|
 | Z speed | `max_z_velocity` 5, homing 5 | stalled at "5 mm/s" | That test ran at the 2x scale (about 10 mm/s real), which stalls on the DP200 too. **Retest at 1:1.** |
 | X/Y homing | 208 mm/s | "violent", lowered to 50 on the stick | Also at 2x (about 416 mm/s real). **Retest at 1:1.** |
-| `max_accel` | 1500 | 500 on the stick | Set after the scale fix as a precaution. **Retest.** |
+| `max_accel` | 3000 | 500 on the stick | Set after the scale fix as a precaution. **Retest.** |
 | Z travel | `position_max` 194 | "198 mm" in 3DWOX1.md | Measured by step count with the faulty firmware; the calibration notes call the figure doubtful. **Re-measure.** |
 | Probe x/y offset | 23.5 / -28.0 | same values, not re-measured | **Measure with a ruler.** |
 | `z_offset`, PIDs | DP200 unit values | per unit (on the stick) | Per-unit calibration, as on any printer; not a model difference. |

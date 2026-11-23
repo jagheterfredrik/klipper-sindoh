@@ -1,0 +1,11 @@
+== firmware
+klipper c9559fa04ec6b11fb1a9a1610903546319fcf310 (2026-11-20)
+UPC port installed in /build/fw-klipper
+make[1]: avr-gcc: No such file or directory
+make: avr-gcc: No such file or directory
+built fm.bin: 11832 bytes
+built io.bin: 11868 bytes
+version sindoh-80445b1-0-g67c6ac8
+kemu fm passed
+kemu io passed
+done (80445b1): /home/runner/work/klipper-sindoh/klipper-sindoh/out/firmware

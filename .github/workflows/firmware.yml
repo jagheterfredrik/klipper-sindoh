@@ -4,8 +4,6 @@ name: firmware
 on:
   push:
   pull_request:
-  schedule:
-    - cron: '17 5 * * 1'
   workflow_dispatch:
 
 jobs:
